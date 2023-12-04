@@ -1,0 +1,24 @@
+diff --git a/config/compiler/BUILD.gn b/config/compiler/BUILD.gn
+index 53db095..793b3db 100644
+--- a/config/compiler/BUILD.gn
++++ b/config/compiler/BUILD.gn
+@@ -826,7 +826,8 @@ config("compiler") {
+   #   lldb doesn't have the needed changes yet.
+   # TODO(crbug.com/1379070): Remove if the upstream default ever changes.
+   if (is_clang && !is_nacl && !is_win && !is_apple) {
+-    cflags_cc += [ "-gsimple-template-names" ]
++    #[ee] ee_inject_custom_clang comment:
++    #cflags_cc += [ "-gsimple-template-names" ]
+   }
+
+   # MLGO specific flags. These flags enable an ML-based inliner trained on
+@@ -1359,7 +1360,8 @@ config("compiler_deterministic") {
+     # different build directory like "out/feature_a" and "out/feature_b" if
+     # we build same files with same compile flag.
+     # Other paths are already given in relative, no need to normalize them.
+-    if (is_nacl) {
++    #[ee] ee_inject_custom_clang true
++    if (is_nacl || true) {
+       # TODO(https://crbug.com/1231236): Use -ffile-compilation-dir= here.
+       cflags += [
+         "-Xclang",
