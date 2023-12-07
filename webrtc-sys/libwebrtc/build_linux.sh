@@ -67,6 +67,8 @@ then
 fi
 
 cd src
+#[ee] ee_inject_custom_clang
+(cd build && git apply "$COMMAND_DIR/patches/ee_inject_custom_clang.patch" -v --ignore-space-change --ignore-whitespace --whitespace=nowarn)
 git apply "$COMMAND_DIR/patches/add_licenses.patch" -v --ignore-space-change --ignore-whitespace --whitespace=nowarn
 git apply "$COMMAND_DIR/patches/ssl_verify_callback_with_native_handle.patch" -v --ignore-space-change --ignore-whitespace --whitespace=nowarn
 git apply "$COMMAND_DIR/patches/add_deps.patch" -v --ignore-space-change --ignore-whitespace --whitespace=nowarn
@@ -105,6 +107,9 @@ args="is_debug=$debug  \
 if [ "$debug" = "true" ]; then
   args="${args} is_asan=true is_lsan=true";
 fi
+
+#[ee] ee_inject_custom_clang
+args="${args} clang_base_path=\"/usr/\" clang_version=\"12.0.1\" clang_use_chrome_plugins=false"
 
 # generate ninja files
 gn gen "$OUTPUT_DIR" --root="src" --args="${args}"
