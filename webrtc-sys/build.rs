@@ -136,7 +136,9 @@ fn main() {
             println!("cargo:rustc-link-lib=dylib=pthread");
             println!("cargo:rustc-link-lib=dylib=m");
 
-            builder.flag("-std=c++2a");
+            builder
+                .flag("-std=c++2a")
+                .flag("-stdlib=libc++");
         }
         "macos" => {
             println!("cargo:rustc-link-lib=framework=Foundation");
