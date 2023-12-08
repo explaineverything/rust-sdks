@@ -1,0 +1,64 @@
+diff --git a/config/compiler/BUILD.gn b/config/compiler/BUILD.gn
+index 53db095..cfe4434 100644
+--- a/config/compiler/BUILD.gn
++++ b/config/compiler/BUILD.gn
+@@ -825,7 +825,11 @@ config("compiler") {
+   # * Apple platforms (e.g. MacOS, iPhone, iPad) aren't supported because xcode
+   #   lldb doesn't have the needed changes yet.
+   # TODO(crbug.com/1379070): Remove if the upstream default ever changes.
+-  if (is_clang && !is_nacl && !is_win && !is_apple) {
++  #[ee] ee_inject_custom_clang: remove option, Clang 12 does not support it, supported from 14
++  # see: https://releases.llvm.org/12.0.0/tools/clang/docs/ClangCommandLineReference.html#debug-information-flags
++  # see: https://releases.llvm.org/14.0.0/tools/clang/docs/ClangCommandLineReference.html#debug-information-flags
++  # (or) if (is_clang && !is_nacl && !is_win && !is_apple) {
++  if (is_clang && !is_nacl && !is_win && !is_apple && !is_linux) {
+     cflags_cc += [ "-gsimple-template-names" ]
+   }
+ 
+@@ -1359,7 +1363,9 @@ config("compiler_deterministic") {
+     # different build directory like "out/feature_a" and "out/feature_b" if
+     # we build same files with same compile flag.
+     # Other paths are already given in relative, no need to normalize them.
+-    if (is_nacl) {
++    #[ee] ee_inject_custom_clang: remove option, Clang 12 does not support it
++    # (or) if (is_nacl) {
++    if (is_nacl || is_linux) {
+       # TODO(https://crbug.com/1231236): Use -ffile-compilation-dir= here.
+       cflags += [
+         "-Xclang",
+@@ -1390,12 +1396,19 @@ config("compiler_deterministic") {
+         ldflags += [ "/PDBSourcePath:o:\fake\prefix" ]
+       }
+     }
++    #[ee] ee_inject_custom_clang: set libc++, disable warnings, add lib c++ for tests (last one not tested)
++    if (is_linux) {
++      cflags += [ "-stdlib=libc++", "-w" ]
++      ldflags += [ "-stdlib=libc++", "-lc++" ]
++    }
+   }
+ 
+   # Tells the compiler not to use absolute paths when passing the default
+   # paths to the tools it invokes. We don't want this because we don't
+   # really need it and it can mess up the goma cache entries.
+-  if (is_clang && (!is_nacl || is_nacl_saigo)) {
++  #[ee] ee_inject_custom_clang: remove gcc flags
++  # (old) if (is_clang && (!is_nacl || is_nacl_saigo)) {
++  if (is_clang && (!is_nacl || is_nacl_saigo) && !is_linux) {
+     cflags += [ "-no-canonical-prefixes" ]
+ 
+     # Same for links: Let the compiler driver invoke the linker
+diff --git a/config/posix/BUILD.gn b/config/posix/BUILD.gn
+index 8312d7e..9b40d8a 100644
+--- a/config/posix/BUILD.gn
++++ b/config/posix/BUILD.gn
+@@ -25,7 +25,9 @@ config("runtime_library") {
+   defines = []
+   ldflags = []
+ 
+-  if (!is_apple && sysroot != "" && current_os != "zos") {
++  #[ee] ee_inject_custom_clang: remove gcc flags
++  # (old) if (!is_apple && sysroot != "" && current_os != "zos") {
++  if (!is_apple && sysroot != "" && current_os != "zos" && !is_linux) {
+     # Pass the sysroot to all C compiler variants, the assembler, and linker.
+     sysroot_flags = [ "--sysroot=" + rebase_path(sysroot, root_build_dir) ]
+     if (is_linux || is_chromeos) {

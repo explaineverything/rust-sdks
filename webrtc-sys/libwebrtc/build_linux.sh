@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+IFS=$'\n\t' && set -euo pipefail # http://redsymbol.net/articles/unofficial-bash-strict-mode/
 
 arch=""
 profile="release"
@@ -67,9 +68,11 @@ then
 fi
 
 cd src
-git apply "$COMMAND_DIR/patches/add_licenses.patch" -v --ignore-space-change --ignore-whitespace --whitespace=nowarn
-git apply "$COMMAND_DIR/patches/ssl_verify_callback_with_native_handle.patch" -v --ignore-space-change --ignore-whitespace --whitespace=nowarn
-git apply "$COMMAND_DIR/patches/add_deps.patch" -v --ignore-space-change --ignore-whitespace --whitespace=nowarn
+#[ee] ee_inject_custom_clang
+(cd build && git apply "$COMMAND_DIR/patches/ee_inject_custom_clang.patch" -v --ignore-space-change --ignore-whitespace --whitespace=nowarn) || true
+git apply "$COMMAND_DIR/patches/add_licenses.patch" -v --ignore-space-change --ignore-whitespace --whitespace=nowarn || true
+git apply "$COMMAND_DIR/patches/ssl_verify_callback_with_native_handle.patch" -v --ignore-space-change --ignore-whitespace --whitespace=nowarn || true
+git apply "$COMMAND_DIR/patches/add_deps.patch" -v --ignore-space-change --ignore-whitespace --whitespace=nowarn || true
 cd ..
 
 mkdir -p "$ARTIFACTS_DIR/lib"
@@ -106,11 +109,14 @@ if [ "$debug" = "true" ]; then
   args="${args} is_asan=true is_lsan=true";
 fi
 
+#[ee] ee_inject_custom_clang
+args="${args} clang_base_path=\"/usr/\" clang_version=\"12.0.1\" clang_use_chrome_plugins=false rtc_include_pulse_audio=false rtc_include_internal_audio_device=false"
+
 # generate ninja files
 gn gen "$OUTPUT_DIR" --root="src" --args="${args}"
 
 # build static library
-ninja -C "$OUTPUT_DIR" :default
+ninja -v -C "$OUTPUT_DIR" :default
 
 # make libwebrtc.a
 # don't include nasm

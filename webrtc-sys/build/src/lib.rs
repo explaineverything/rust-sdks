@@ -26,7 +26,7 @@ use regex::Regex;
 use reqwest::StatusCode;
 
 pub const SCRATH_PATH: &str = "livekit_webrtc";
-pub const WEBRTC_TAG: &str = "webrtc-d5afc4b";
+pub const WEBRTC_TAG: &str = "ee-webrtc-d5afc4b-231208a0800";
 pub const IGNORE_DEFINES: [&str; 2] = ["CR_CLANG_REVISION", "CR_XCODE_VERSION"];
 
 pub fn target_os() -> String {
@@ -98,7 +98,7 @@ pub fn prebuilt_dir() -> path::PathBuf {
 
 pub fn download_url() -> String {
     format!(
-        "https://github.com/livekit/client-sdk-rust/releases/download/{}/{}.zip",
+        "https://github.com/explaineverything/rust-sdks/releases/download/{}/{}.zip",
         WEBRTC_TAG,
         format!("webrtc-{}", webrtc_triple())
     )
@@ -195,7 +195,7 @@ pub fn download_webrtc() -> Result<(), Box<dyn Error>> {
     if webrtc_dir.exists() {
         return Ok(());
     }
-
+    println!("cargo:warning=Download webrtc from: {}", download_url());
     let mut resp = reqwest::blocking::get(download_url())?;
     if resp.status() != StatusCode::OK {
         return Err(format!("failed to download webrtc: {}", resp.status()).into());
